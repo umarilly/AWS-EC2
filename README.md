@@ -91,73 +91,25 @@ aws ec2 run-instances --image-id ami-0abcdef1234567890 --count 1 --instance-type
 - Create or use an existing key pair to access your instance. (Download it)
 - Configure security group: Add a rule to allow inbound traffic on port 22 (SSH) and port 3000 (for your Node.js app).
 
-- Go to the directory where you key is present - chmod 400 practice-key-01.pem
-- SSH into Your EC2 Instance - ssh -i "MyKeyPair.pem" ec2-user@<your-ec2-instance-public-ip> - ssh -i "practice-key-01.pem" ubuntu@ec2-107-22-229-30.compute-1.amazonaws.com
-- `exit` to stop
-
-### 2. Create a Backend for S3 Interaction
-
-- Create a server folder and use the following commands:
+### 2. Access through SSH
+- Go to the directory where your key is present and type the following to give executable permission to the file:
 
 ```bash
-npm init -y
-npm install express cors dotenv @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
+chmod 400 practice-key-01.pem
 ```
 
-### 3. Create a .env file
-
-- Create a .env file in the root of server and paste the following inside it:
+- Enter the following command to get into Your EC2 Instance using SSH
 
 ```bash
-AWS_ACCESS_KEY_ID=your-access-key
-AWS_SECRET_ACCESS_KEY=your-secret-key
-AWS_REGION=your-aws-region
-S3_BUCKET_NAME=your-bucket-name
+ssh -i "MyKeyPair.pem" ec2-user@<your-ec2-instance-public-ip> 
 ```
-
-### 4. Create a Backend for S3 Interaction
-
-- Create a client folder and use the following commands:
 
 ```bash
-npm create vite@latest .
+ssh -i "practice-key-01.pem" ubuntu@ec2-107-22-229-30.compute-1.amazonaws.com
 ```
 
-Then, choose the following:
-- React
-- TypeScript + SWC
+- Enter `exit` to stop the EC2 instance and get back to your local machine terminal
 
-&, after this just type these commands
-
-```bash
-npm install
-npm run dev
-```
-
-### 6. Setup Policy for Pre-signed URLs
-
-- Go to the permissions of the specified bucket and under `Bucket Policy`, enter the following:
-
-```bash
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "AllowGetObjectFromLocalhost",
-            "Effect": "Allow",
-            "Principal": "*",
-            "Action": "s3:GetObject",
-            "Resource": "arn:aws:s3:::bucket-name/*", // Enter bucket name
-            "Condition": {
-                "StringLike": {
-                    "aws:Referer": "http://localhost:5173/*" // Or your application link
-                }
-            }
-        }
-    ]
-}
-```
-- Also check the `Block public access (bucket settings)` and `Cross-origin resource sharing (CORS)` of your S3 bucket
 
 
 This `README.md` provides an easy-to-follow guide for setting up AWS CLI, interacting with S3, and building a React app with S3 file uploads via pre-signed URLs.

@@ -4,8 +4,9 @@ The AWS EC2 (Elastic Compute Cloud) project demonstrates how to deploy a Node.js
 
 This guide provides three main parts:
 1. **Basic Practice**: A quick guide to set up an AWS account, create an EC2 instance, and interact with it using the `connect browser option`.
-2. **Application Practice**: Step-by-step guide on how to create a Node.js application and deploy it on an EC2 instance.
+2. **Application Practice**: Step-by-step guide on how to create a Node.js application and deploy it on an EC2 instance and get access using `ssh`.
 3. **Using Process Manager - PM2**: Learn to manage your Node.js application with PM2 for better performance and reliability.
+4. **Local Development and Remote Deployment**: Instructions on developing your application locally and deploying it to EC2 using `scp` or `git`.
 
 ---
 
@@ -114,7 +115,15 @@ ssh -i "MyKeyPair.pem" ec2-user@<your-ec2-instance-public-ip>
 ssh -i "practice-key-01.pem" ubuntu@ec2-107-22-229-30.compute-1.amazonaws.com
 ```
 
-- Enter `exit` to stop the EC2 instance and get back to your local machine terminal.
+- Enter `exit` to exit the EC2 instance terminal and get back to your local machine terminal.
+
+- Stop, Close and Cleaning up your instance
+ - You can close using the AWS management console - (dashboard)
+ - Or you can also close using AWS-CLI
+
+    ```bash
+    aws ec2 stop-instances --instance-ids <your-instance-id>
+    ```
 
 ### 3. Install dependencies and set up your application
 
@@ -128,7 +137,7 @@ ssh -i "practice-key-01.pem" ubuntu@ec2-107-22-229-30.compute-1.amazonaws.com
 - `vim server.js`
 - Add your code, e.g., you can check from the example below:
 
-        ```javascript
+        ```bash
         const express = require('express');
         const app = express();
 
@@ -142,5 +151,125 @@ ssh -i "practice-key-01.pem" ubuntu@ec2-107-22-229-30.compute-1.amazonaws.com
             console.log(`Server running on http://localhost:${PORT}`);
         });
         ```
+
+### 4. Run your Node.js server inside the EC2 Instance
+- Go to the root directory of your application.
+- Run `node server.js`.
+- Ensure your EC2 instance's security group allows inbound traffic on port 3000.
+
+
+## Using Process Manager - PM2
+
+- Manage your Node.js application with PM2 for better performance and reliability.
+
+### 1. Install PM2
+
+- If Node.js is installed, simply use:
+ - `sudo npm install -g pm2`
+
+- `Optional`
+> When installing Node.js using nvm, sometimes Node.js isn't available globally for sudo. You can fix this by creating a symbolic link:
+> - `sudo ln -s $(which node) /usr/bin/node`
+>
+> If you still need to run the command with sudo, make sure you're pointing to the correct npm path by running:
+> - `sudo $(which npm) install -g pm2`
+
+As we have installed Node.js using nvm, we will not use sudo to install pm2:
+- `npm install -g pm2`
+- `pm2 --version`
+
+### 2. Start your application using PM2
+- `pm2 start server.js`
+- If you want your app to auto start on reboot:
+    - `pm2 startup`
+    - `pm2 save`
+- To check the logs:
+    - `pm2 logs`
+
+### 3. Manage PM2 Processes
+
+- View the list of all processes:
+    ```bash
+    pm2 list
+    ```
+- Find the ID of the process you want to manage.
+- Stop a specific app:
+    ```bash
+    pm2 stop <app-id>
+    ```
+- Stop all apps:
+    ```bash
+    pm2 stop all
+    ```
+- Restart a specific app:
+    ```bash
+    pm2 restart <app-id>
+    ```
+- Delete a specific app:
+    ```bash
+    pm2 delete <app-id>
+    ```
+
+## Local Development and Remote Deployment
+
+- Instructions on developing your application locally and deploying it to EC2 using `scp` or `git`.
+- Follow the same process for creating and running your application locally as described in the previous sections.
+
+### 1. Deploying Your Application to EC2 Using SCP
+
+You can deploy your application to an EC2 instance using either SCP (Secure Copy Protocol) or Git.
+
+- On your local machine, ensure your key file has the correct permissions:
+
+    ```bash
+    chmod 400 practice-key-01.pem
+    ```
+
+- Make sure the key file is in the same directory as your application.
+
+- Use the following command to copy your application to the EC2 instance:
+
+    ```bash
+    scp -i "MyKeyPair.pem" -r * ec2-user@<your-ec2-instance-public-ip>:~/directory
+    ```
+
+    ```bash
+    scp -i "practice-key-01.pem" -r * ubuntu@ec2-107-22-229-30.compute-1.amazonaws.com:~/
+    ```
+
+    Note: You can use `*`, `.`, or `./` depending on which works for you.
+
+- Once copied, use the same `ssh` command to connect to the EC2 instance and start your application remotely.
+
+#### 2. Deploying Your Application to EC2 Using Git
+
+- Clone your repository on the EC2 instance:
+
+    ```bash
+    git clone <your-repository-url>
+    ```
+
+- Navigate to your project directory and install dependencies:
+
+    ```bash
+    cd <your-project-directory>
+    npm install
+    ```
+
+- Start your application:
+
+    ```bash
+    node server.js
+    ```
+
+### Pro Tips
+
+If you don't want to use SCP or Git, consider the following alternatives:
+
+- **Docker**: Containerize your application for easier deployment.
+- **Git Branching and Hooks**: Use Git hooks like `post-receive` on the EC2 instance to automate deployment.
+- **CI/CD Pipeline Tools**: Use tools like GitHub Actions, CircleCI, or Travis CI to automate the deployment process.
+- **Deployment Services**: Use services like Capistrano or Ansible to automate the deployment process.
+
 
 This `README.md` provides an easy-to-follow guide for setting up AWS CLI, interacting with EC2, and deploying a Node.js application.

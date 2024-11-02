@@ -2,23 +2,23 @@
 
 The AWS EC2 (Elastic Compute Cloud) project demonstrates how to deploy a Node.js backend (Express) on an AWS EC2 instance. This guide covers setting up an EC2 instance, configuring security groups, and deploying a simple Express.js application.
 
-This guide provides two main parts:
-1. **Basic Practice**: A quick guide to set up an AWS account, create an EC2 instance, and interact with it using `connect brower option`.
-2. **Application Practice**: Step-by-step guide on how to create a Node.js application, deploy it on an EC2 instance.
+This guide provides three main parts:
+1. **Basic Practice**: A quick guide to set up an AWS account, create an EC2 instance, and interact with it using the `connect browser option`.
+2. **Application Practice**: Step-by-step guide on how to create a Node.js application and deploy it on an EC2 instance.
 3. **Using Process Manager - PM2**: Learn to manage your Node.js application with PM2 for better performance and reliability.
 
 ---
 
-## AWS EC2 - (Elastic compute cloud):
-- One of the most popular service of AWS
+## AWS EC2 - (Elastic Compute Cloud):
+- One of the most popular services of AWS
 - Comes under the category of compute service
-- Server full or non-serverless
+- Server-based (non-serverless)
 - Provides secure and resizable compute capacity
 - Provides scaling - Instances can scale up and down - Pay for what you use
-- Can be integrated with other services, operate from any region and also provides multiple OS
+- Can be integrated with other services, operate from any region, and also provides multiple OS options
 - Also works with Amazon VPC for secure network resources
 
-## Basic AWS S3 Practice
+## Basic AWS EC2 Practice
 
 ### 1. Create an AWS Account
 - Go to [AWS](https://aws.amazon.com/) and create a free account if you haven't done so already.
@@ -27,7 +27,7 @@ This guide provides two main parts:
 - Log into your AWS account.
 - Go to **IAM** (Identity and Access Management).
 - Create a new user and assign **Programmatic Access**.
-- Attach the policy **AmazonS3FullAccess** (or use more granular permissions based on your needs).
+- Attach the policy **AmazonEC2FullAccess** (or use more granular permissions based on your needs).
 - Save the **Access Key ID** and **Secret Access Key**.
 
 ### 3. Install AWS CLI
@@ -50,7 +50,7 @@ You'll be prompted to enter:
 
 - AWS Access Key ID
 - AWS Secret Access Key
-- Default region name (e.g., us-east-01)
+- Default region name (e.g., us-east-1)
 - Default output format (optional, e.g., json)
 
 ### 6. Create and Launch an EC2 Instance
@@ -58,15 +58,15 @@ You'll be prompted to enter:
 - Go to the EC2 dashboard.
 - Click "Launch Instance".
 - Choose an Amazon Machine Image (AMI). For example, choose the latest Amazon Linux or Ubuntu AMI.
-- Select an instance type (e.g., t2.micro which is free-tier eligible) or (t2.nano) and more.
+- Select an instance type (e.g., t2.micro which is free-tier eligible).
 - Create or use an existing key pair to access your instance.
-- Create security group
+- Create a security group.
 - Launch the instance.
-- connect using browser - in new a ubuntu cli will open and you can start working
+- Connect using the browser - a new Ubuntu CLI will open, and you can start working.
 
 ### 7. Map a Static IP (Optional)
-- As, the provided IP is dynamic
-- Go to elastic IP, create one and associate it with the instance
+- As the provided IP is dynamic
+- Go to Elastic IP, create one, and associate it with the instance
 - Tips: When you create a static IP (Elastic IP), ensure it is associated with an EC2 instance. AWS charges for idle Elastic IPs that are not associated with any running instance. To avoid unnecessary charges, release the Elastic IP if it is no longer needed or ensure it is always connected to an EC2 instance.
 
 ## Application Practice
@@ -77,8 +77,8 @@ You'll be prompted to enter:
 ### 1. Create AWS EC2 Instance
 
 **Create EC2 Instance Using AWS Management Console**
-- Same above steps to create EC2 instance 
-- The only difference is, we will use SSH in this practice to connect to the instance
+- Follow the same steps as above to create an EC2 instance.
+- The only difference is, we will use SSH in this practice to connect to the instance.
 
 **Create EC2 Instance Using CLI**
 - Use the following command:
@@ -87,18 +87,24 @@ You'll be prompted to enter:
 aws ec2 run-instances --image-id ami-0abcdef1234567890 --count 1 --instance-type t2.micro --key-name practice-key-01.pem
 ```
 
-- Replace ami-0abcdef1234567890 with the correct AMI ID
+- Replace ami-0abcdef1234567890 with the correct AMI ID.
 - Create or use an existing key pair to access your instance. (Download it)
-- Configure security group: Add a rule to allow inbound traffic on port 22 (SSH) and port 3000 (for your Node.js app).
+- Configure the security group: Add a rule to allow inbound traffic on port 22 (SSH) and port 3000 (for your Node.js app).
 
 ### 2. Access through SSH
 - Go to the directory where your key is present and type the following to give executable permission to the file:
 
 ```bash
+chmod 400 "MyKeyPair.pem"
+```
+
+```bash
 chmod 400 practice-key-01.pem
 ```
 
-- Enter the following command to get into Your EC2 Instance using SSH
+- Note: `practice-key-01.pem` is the name of my `MyKeyPair.pem` file.
+
+- Enter the following command to get into Your EC2 Instance using SSH:
 
 ```bash
 ssh -i "MyKeyPair.pem" ec2-user@<your-ec2-instance-public-ip> 
@@ -108,8 +114,33 @@ ssh -i "MyKeyPair.pem" ec2-user@<your-ec2-instance-public-ip>
 ssh -i "practice-key-01.pem" ubuntu@ec2-107-22-229-30.compute-1.amazonaws.com
 ```
 
-- Enter `exit` to stop the EC2 instance and get back to your local machine terminal
+- Enter `exit` to stop the EC2 instance and get back to your local machine terminal.
 
+### 3. Install dependencies and set up your application
 
+- Install Node.js and npm in your EC2 instance:
+    - `sudo apt update -y` (apt or yum, depends on Linux distribution)
+    - Install Node Version Manager - nvm (best approach)
+    - You can also install Node.js and npm separately (if not installing nvm)
+- `npm init -y`
+- `npm install express`
+- `touch server.js`
+- `vim server.js`
+- Add your code, e.g., you can check from the example below:
 
-This `README.md` provides an easy-to-follow guide for setting up AWS CLI, interacting with S3, and building a React app with S3 file uploads via pre-signed URLs.
+        ```javascript
+        const express = require('express');
+        const app = express();
+
+        const PORT = 3000;
+
+        app.get('/', (req, res) => {
+            res.send('Hello, World from EC2');
+        });
+
+        app.listen(PORT, () => {
+            console.log(`Server running on http://localhost:${PORT}`);
+        });
+        ```
+
+This `README.md` provides an easy-to-follow guide for setting up AWS CLI, interacting with EC2, and deploying a Node.js application.
